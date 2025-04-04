@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Chatbot</title>
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="chat-container">
+    <div class="creator-info">
+      <i class="fas fa-user"></i> Dhanush Raja
+    </div>
+    <div class="chat-header">
+      <h2><i class="fas fa-stethoscope"></i> Medical Chatbot</h2>
+      <p class="creator-mention">Created with care by Dhanush Raja</p>
+    </div>
+    <div class="chat-box" id="chat-box">
+      <!-- Chat messages will appear here -->
+    </div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Ask a medical question..." />
+      <button id="send-btn"><i class="fas fa-paper-plane"></i> Send</button>
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById('send-btn');
+    const userInput = document.getElementById('user-input');
+    const chatBox = document.getElementById('chat-box');
+
+    sendBtn.addEventListener('click', () => {
+      const userMessage = userInput.value.trim();
+      if (userMessage) {
+        appendMessage('You', userMessage);
+        userInput.value = '';
+
+        // Send user message to Flask backend
+        fetch('/get', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ msg: userMessage })
+        })
+        .then(response => response.text())
+        .then(data => {
+          // Append the LLM response to the chatbox
+          appendMessage('Bot', data);
+        })
+        .catch(error => {
+          appendMessage('Bot', 'Error: Unable to process your request.');
+          console.error('Error:', error);
+        });
+      }
+    });
+
+    function appendMessage(sender, message) {
+      const messageElem = document.createElement('div');
+      messageElem.classList.add('message');
+      messageElem.classList.add(sender === 'You' ? 'user-message' : 'bot-message');
+      messageElem.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatBox.appendChild(messageElem);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
