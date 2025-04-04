@@ -12,7 +12,8 @@ appdirs==1.4.4
 appnope==0.1.4
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
-arrow==1.3.0
+arrow==1.3.0pyobjc==10.3.2
+pyobjc-core==10.3.2
 asgiref==3.7.2
 asttokens==2.4.1
 astunparse==1.6.3
