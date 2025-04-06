@@ -1,5 +1,6 @@
+from urllib.parse import quote as url_quote  # Correct import for URL encoding
 from flask import Flask, render_template, jsonify, request
-from src.helper import load_pdf_file,text_split,download_hugging_face_embeddings
+from src.helper import load_pdf_file, text_split, download_hugging_face_embeddings
 import os
 from langchain_pinecone import PineconeVectorStore
 from dotenv import load_dotenv
@@ -9,49 +10,47 @@ from langchain_core.prompts import ChatPromptTemplate
 from src.prompt import *
 from langchain_groq import ChatGroq
 
-app =Flask(__name__)
+app = Flask(__name__)
 
 load_dotenv()
-GROQ_API_KEY=os.environ.get("GROQ_API_KEY")
-PINCONE_API_KEY=os.environ.get("PINCONE_API_KEY")
-os.environ["GROQ_API_KEY"]=GROQ_API_KEY
-os.environ["PINECONE_API_KEY"]=PINCONE_API_KEY
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+PINCONE_API_KEY = os.environ.get("PINCONE_API_KEY")
+os.environ["GROQ_API_KEY"] = GROQ_API_KEY
+os.environ["PINECONE_API_KEY"] = PINCONE_API_KEY
 
-embeddings=download_hugging_face_embeddings()
-
+embeddings = download_hugging_face_embeddings()
 
 index_name = "medibotultra1"
-data_to_model=PineconeVectorStore.from_existing_index(
+data_to_model = PineconeVectorStore.from_existing_index(
     index_name=index_name,
     embedding=embeddings
 )
-retriver=data_to_model.as_retriever(search_type="similarity", search_kwargs={"k":3})
-
-from langchain_groq import ChatGroq
+retriver = data_to_model.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0.3,
-    max_retries=2,)
-Prompt= ChatPromptTemplate.from_messages(
+    max_retries=2,
+)
+Prompt = ChatPromptTemplate.from_messages(
     [
-        ("system",system_prompt),
-        ("human","{input}")
+        ("system", system_prompt),
+        ("human", "{input}")
     ]
 )
-question_answer_chain=create_stuff_documents_chain(llm, Prompt)
-rag_chain=create_retrieval_chain(retriver,question_answer_chain)
+question_answer_chain = create_stuff_documents_chain(llm, Prompt)
+rag_chain = create_retrieval_chain(retriver, question_answer_chain)
 
-@app.route("/")  
+@app.route("/")
 def index():
     return render_template("chat.html")
 
-@app.route("/get", methods=["GET","POST"])
+@app.route("/get", methods=["GET", "POST"])
 def chat():
-    msg=request.form["msg"]
-    input=msg
+    msg = request.form["msg"]
+    input = msg
     print(input)
-    response=rag_chain.invoke({"input": msg})
+    response = rag_chain.invoke({"input": msg})
     print("response :", response["answer"])
     return str(response["answer"])
 
