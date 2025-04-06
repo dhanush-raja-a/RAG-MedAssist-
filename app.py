@@ -9,6 +9,8 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from src.prompt import *
 from langchain_groq import ChatGroq
+from src.helper import get_stock_info, get_mutual_fund_info
+import re
 
 app = Flask(__name__)
 
@@ -45,13 +47,39 @@ rag_chain = create_retrieval_chain(retriver, question_answer_chain)
 def index():
     return render_template("chat.html")
 
+def extract_stock_symbol(text):
+    """Extract stock symbol from user message"""
+    # Common patterns for stock queries
+    patterns = [
+        r"stock price of (\w+)",
+        r"(\w+) stock",
+        r"price of (\w+)",
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text.lower())
+        if match:
+            return match.group(1).upper()
+    return None
+
 @app.route("/get", methods=["GET", "POST"])
 def chat():
     msg = request.form["msg"]
-    input = msg
-    print(input)
+    
+    # Check if it's a stock price query
+    stock_symbol = extract_stock_symbol(msg)
+    if stock_symbol:
+        stock_data = get_stock_info(stock_symbol)
+        if stock_data:
+            response = f"Here's the current information for {stock_data['name']}:\n"
+            response += f"Current Price: ₹{stock_data['current_price']}\n"
+            response += f"Previous Close: ₹{stock_data['prev_close']}\n"
+            response += f"Day High: ₹{stock_data['day_high']}\n"
+            response += f"Day Low: ₹{stock_data['day_low']}"
+            return response
+    
+    # If not a stock query, use the RAG chain
     response = rag_chain.invoke({"input": msg})
-    print("response :", response["answer"])
     return str(response["answer"])
 
 # Add this after app initialization

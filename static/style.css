@@ -186,4 +186,35 @@ body {
     color: #10a37f;
     margin-right: 6px;
 }
+
+.financial-data {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.financial-data .price {
+    font-size: 24px;
+    font-weight: 600;
+    color: #10a37f;
+}
+
+.financial-data .details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.financial-data .label {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.financial-data .value {
+    font-weight: 500;
+    color: #212529;
+}
   
